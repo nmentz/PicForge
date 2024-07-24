@@ -9,21 +9,23 @@ import java.awt.BorderLayout;
 public class View {
 
     // ui components
-    private static JFrame frame;
-    private static JLabel label;
-    private static JButton fileExplorer;
-    private static JButton actionsSubMenu;
+    private static JFrame       frame;
+    private static JLabel       label;
+    private static JButton      fileExplorer;
+    private static JButton      actionsSubMenu;
     private static JFileChooser fileChooser;
 
     View() {
         // create componenets
         frame = new JFrame("PicForge");
         frame.setSize(900, 700); 
-        frame.setLayout(null); // Using no layout managers
+        frame.setLayout(null);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         label = new JLabel();
+        label.setHorizontalAlignment(SwingConstants.CENTER); 
+        label.setVerticalAlignment(SwingConstants.CENTER); 
 
         fileExplorer = new JButton("Open");
         fileExplorer.setBounds(0, 0, 125, 30);

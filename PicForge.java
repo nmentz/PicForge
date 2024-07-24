@@ -2,7 +2,7 @@ public class PicForge {
    public static void main(String[] args) {
 
       Model model = new Model();
-      View view = new View();
+      View  view  = new View();
       Controller controller = new Controller(model, view);
       
       view.getFrame().setVisible(true);
