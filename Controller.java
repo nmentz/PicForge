@@ -15,14 +15,13 @@ import java.awt.image.BufferedImage;
 // include swing types so methods can be called
 import javax.swing.*;
 
-
 public class Controller {
     private Model model;
     private View view;
 
     public Controller(Model model, View view) {
         this.model = model;
-        this.view = view;
+        this.view  = view;
         
         // give fileExplorer button functionality
         view.addFileExplorerListener(new ActionListener() {
@@ -38,41 +37,54 @@ public class Controller {
                 BufferedImage bufferedImage = model.getBufferedImage();
                 ImageIcon     imageIcon     = model.getImageIcon();
                   
-                // this method does not return until the dialog is closed
+                // this method only checks if the user chose a file
                 int returnValue = fileChooser.showOpenDialog(frame);
                 
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
 
-                    // this is starting to look like spaghetti
-                    // after the if else, try splitting into functions:
-                    //      spawnImage(...)
-                    //      scaleImage(...)
                     filePath = fileChooser.getSelectedFile().getAbsolutePath();
 
                     File file = new File(filePath);
 
+                    // does the file exist?
+                    if (!file.exists()) {
+                        new ExceptionGUI("File Does Not Exist!");
+                        return;
+                    }
+
+                    // ImageIO.read() is a checked exception
                     try {
                         bufferedImage = ImageIO.read(file);
                     } catch (Exception ioe) {
-                        ioe.printStackTrace();
+                        new ExceptionGUI(ioe);
+                        return;
                     }
                     
+                    // is this actually a picture file?
+                    if (bufferedImage == null) {
+                        new ExceptionGUI("Image Is Null");
+                        return;
+                    }
+                    
+                    // all checks are passed, model.imageIcon is stored
                     imageIcon = new ImageIcon(bufferedImage);
                     
-                    label.setIcon(imageIcon);
+                    displayImage(imageIcon, label, frame);
 
-                    frame.setLayout(new BorderLayout());
-                    frame.add(label, BorderLayout.CENTER);
+/*
+        the issue is that not all images are the same size,
+        so the image needs to have scale functionality. 
+
+        if dimensions are larger than x || y, zoom out z times
+*/
 
                 } else {
-                    // create error class
-                    System.out.println("No file chosen");
+                    // else is hit when the user cancels image selection
                     return;
-
                 }
-
             }
         });
+
 
 /*
         // actions menu to run jni image processing
@@ -106,5 +118,14 @@ public class Controller {
 
     }
 
+    private static void displayImage(ImageIcon imageIcon, JLabel label, JFrame frame) {
+
+        // attach image to label
+        label.setIcon(imageIcon);
+
+        // center lable and add to frame
+        frame.setLayout(new BorderLayout());
+        frame.add(label, BorderLayout.CENTER);
+    }
 
 }
