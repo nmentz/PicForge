@@ -16,8 +16,8 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 public class Controller {
-    private Model model;
-    private View view;
+    private static Model model;
+    private static View view;
 
     public Controller(Model model, View view) {
         this.model = model;
@@ -27,56 +27,42 @@ public class Controller {
         view.addFileExplorerListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // pull view's componenents onto stack for manipulation
-                JFrame       frame       = view.getFrame();
-                JFileChooser fileChooser = view.getFileChooser();
-                JLabel       label       = view.getLabel();
                       
-                // pull model's data onto stack for manipulation
-                String        filePath      = model.getFilePath();
-                BufferedImage bufferedImage = model.getBufferedImage();
-                ImageIcon     imageIcon     = model.getImageIcon();
-                  
                 // this method only checks if the user chose a file
-                int returnValue = fileChooser.showOpenDialog(frame);
+                int returnValue = view.getFileChooser().showOpenDialog(view.getFrame());
                 
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
 
-                    filePath = fileChooser.getSelectedFile().getAbsolutePath();
+                    String filePath = view.getFileChooser().getSelectedFile().getAbsolutePath();
+                    model.setFilePath(filePath);
 
-                    File file = new File(filePath);
+                    // set File
+                    model.setFile(new File(model.getFilePath()));
 
                     // does the file exist?
-                    if (!file.exists()) {
+                    if (!model.getFile().exists()) {
                         new ExceptionGUI("File Does Not Exist!");
                         return;
                     }
 
                     // ImageIO.read() is a checked exception
                     try {
-                        bufferedImage = ImageIO.read(file);
+                        model.setBufferedImage(ImageIO.read(model.getFile()));
                     } catch (Exception ioe) {
                         new ExceptionGUI(ioe);
                         return;
                     }
                     
                     // is this actually a picture file?
-                    if (bufferedImage == null) {
+                    if (model.getBufferedImage() == null) {
                         new ExceptionGUI("Image Is Null");
                         return;
                     }
                     
                     // all checks are passed, model.imageIcon is stored
-                    imageIcon = new ImageIcon(bufferedImage);
-                    
-                    displayImage(imageIcon, label, frame);
+                    model.setImageIcon(new ImageIcon(model.getBufferedImage()));
 
-/*
-        the issue is that not all images are the same size,
-        so the image needs to have scale functionality. 
-
-        if dimensions are larger than x || y, zoom out z times
-*/
+                    displayImage(model.getImageIcon(), view.getLabel(), view.getFrame());
 
                 } else {
                     // else is hit when the user cancels image selection
@@ -85,37 +71,50 @@ public class Controller {
             }
         });
 
-
-/*
-        // actions menu to run jni image processing
-        view.addActionsSubMenuListener(new ActionListener() {
+        view.getLabel().addMouseWheelListener(new MouseWheelListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void mouseWheelMoved(MouseWheelEvent e) {
 
+                int notches = e.getWheelRotation();
+
+                if (notches != 0) {
+                    //System.out.println("inside of mousewheelistener " + model.getImageIcon().getIconHeight());
+                    zoomImage(notches, model.getImageIcon().getIconWidth(), model.getImageIcon().getIconHeight());
+
+                    //System.out.println("mouse wheel moved " + notches + " notches");
+                    //zoomImage(notches, bufferedImage, imageIcon);
+                }
             }
-
         });
 
+    }
 
-        // allow mouse to click and drag image to move
-        view.addClickDragImageListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+    private static void zoomImage(int direction, int originalWidth, int originalHeight) {
+        // multiply direction by 10
+        int newWidth  = direction*10 + originalWidth;
+        int newHeight = direction*10 + originalHeight;
 
-            }
+        // store buffered imaged
+        BufferedImage resizedImage = resizeImage(model.getBufferedImage(), newWidth, newHeight);
+        model.setBufferedImage(resizedImage);
 
-        });
+        // store image icon
+        ImageIcon imageIcon = new ImageIcon(resizedImage);
+        model.setImageIcon(imageIcon);
 
-        // use scroll wheel to zoom
-        view.addScrollWheelZoomListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+        System.out.println("newWidth = " + newWidth + "\n" + "newHeight = " + newHeight);
 
-            }
+        // display image again
+        displayImage(model.getImageIcon(), view.getLabel(), view.getFrame());
+    }
 
-        });
-*/
-
+    private static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
+        Image tmp = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
+        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = resizedImage.createGraphics();
+        g2d.drawImage(tmp, 0, 0, null);
+        g2d.dispose();
+        return resizedImage;
     }
 
     private static void displayImage(ImageIcon imageIcon, JLabel label, JFrame frame) {
@@ -126,6 +125,7 @@ public class Controller {
         // center lable and add to frame
         frame.setLayout(new BorderLayout());
         frame.add(label, BorderLayout.CENTER);
+        //frame.pack();
     }
 
 }
