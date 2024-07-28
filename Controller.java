@@ -78,21 +78,25 @@ public class Controller {
                 int notches = e.getWheelRotation();
 
                 if (notches != 0) {
-                    //System.out.println("inside of mousewheelistener " + model.getImageIcon().getIconHeight());
                     zoomImage(notches, model.getImageIcon().getIconWidth(), model.getImageIcon().getIconHeight());
-
-                    //System.out.println("mouse wheel moved " + notches + " notches");
-                    //zoomImage(notches, bufferedImage, imageIcon);
                 }
             }
         });
 
     }
 
-    private static void zoomImage(int direction, int originalWidth, int originalHeight) {
+    private static void zoomImage(int notches, int originalWidth, int originalHeight) {
         // multiply direction by 10
-        int newWidth  = direction*10 + originalWidth;
-        int newHeight = direction*10 + originalHeight;
+        int newWidth = originalWidth;
+        int newHeight = originalHeight;
+        
+        if (notches > 0) {
+            newWidth  *= 0.9;
+            newHeight *= 0.9;
+        } else {
+            newWidth  *= 1.1;
+            newHeight *= 1.1;
+        }
 
         // store buffered imaged
         BufferedImage resizedImage = resizeImage(model.getBufferedImage(), newWidth, newHeight);
@@ -101,8 +105,6 @@ public class Controller {
         // store image icon
         ImageIcon imageIcon = new ImageIcon(resizedImage);
         model.setImageIcon(imageIcon);
-
-        System.out.println("newWidth = " + newWidth + "\n" + "newHeight = " + newHeight);
 
         // display image again
         displayImage(model.getImageIcon(), view.getLabel(), view.getFrame());
@@ -125,7 +127,6 @@ public class Controller {
         // center lable and add to frame
         frame.setLayout(new BorderLayout());
         frame.add(label, BorderLayout.CENTER);
-        //frame.pack();
     }
 
 }
