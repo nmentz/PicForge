@@ -50,6 +50,7 @@ public class Controller {
                         model.setBufferedImage(ImageIO.read(model.getFile()));
                     } catch (Exception ioe) {
                         new ExceptionGUI(ioe);
+                        return;
                     }
                     
                     // is this actually a picture file?
