@@ -21,7 +21,6 @@ public class Model {
       private static ImageIcon     imageIcon;
 
       Model() {
-            System.out.println("model constructor");
       }
 
       public BufferedImage getBufferedImage() {
