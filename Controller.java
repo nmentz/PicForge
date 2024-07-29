@@ -22,7 +22,7 @@ public class Controller {
     public Controller(Model model, View view) {
         this.model = model;
         this.view  = view;
-        
+
         // give fileExplorer button functionality
         view.addFileExplorerListener(new ActionListener() {
             @Override
@@ -50,7 +50,6 @@ public class Controller {
                         model.setBufferedImage(ImageIO.read(model.getFile()));
                     } catch (Exception ioe) {
                         new ExceptionGUI(ioe);
-                        return;
                     }
                     
                     // is this actually a picture file?
@@ -71,52 +70,6 @@ public class Controller {
             }
         });
 
-        view.getLabel().addMouseWheelListener(new MouseWheelListener() {
-            @Override
-            public void mouseWheelMoved(MouseWheelEvent e) {
-
-                int notches = e.getWheelRotation();
-
-                if (notches != 0) {
-                    zoomImage(notches, model.getImageIcon().getIconWidth(), model.getImageIcon().getIconHeight());
-                }
-            }
-        });
-
-    }
-
-    private static void zoomImage(int notches, int originalWidth, int originalHeight) {
-        // multiply direction by 10
-        int newWidth = originalWidth;
-        int newHeight = originalHeight;
-        
-        if (notches > 0) {
-            newWidth  *= 0.9;
-            newHeight *= 0.9;
-        } else {
-            newWidth  *= 1.1;
-            newHeight *= 1.1;
-        }
-
-        // store buffered imaged
-        BufferedImage resizedImage = resizeImage(model.getBufferedImage(), newWidth, newHeight);
-        model.setBufferedImage(resizedImage);
-
-        // store image icon
-        ImageIcon imageIcon = new ImageIcon(resizedImage);
-        model.setImageIcon(imageIcon);
-
-        // display image again
-        displayImage(model.getImageIcon(), view.getLabel(), view.getFrame());
-    }
-
-    private static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight) {
-        Image tmp = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH);
-        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = resizedImage.createGraphics();
-        g2d.drawImage(tmp, 0, 0, null);
-        g2d.dispose();
-        return resizedImage;
     }
 
     private static void displayImage(ImageIcon imageIcon, JLabel label, JFrame frame) {
@@ -127,6 +80,13 @@ public class Controller {
         // center lable and add to frame
         frame.setLayout(new BorderLayout());
         frame.add(label, BorderLayout.CENTER);
+
+        //if image is bigger than 700x900, make window size of image, otherwise, make it 700x900
+        if (imageIcon.getIconWidth() > frame.getWidth() || imageIcon.getIconHeight() > frame.getHeight()) {
+            frame.pack();
+        } else {
+            frame.setSize(900, 700);
+        }
     }
 
 }
